@@ -15,6 +15,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import org.creator.markermap.model.MarkerMapModel
 import org.creator.markermap.model.CellPosition
+import kotlin.math.atan2
 
 data class MarkerMapRenderingState (
     val circles: Int,
@@ -73,11 +74,32 @@ fun offsetToPosition(
     map: MarkerMapModel,
     renderingState: MarkerMapRenderingState
 ): CellPosition? {
-    val distance = (offset - anchor - renderingState.boundedOffset()).getDistance()
-    val row = distance / renderingState.boundedRadius()
-    Log.d("[MarkerMap]", "Row = $row")
+    val pos = offset - renderingState.boundedOffset();
+    val normalized = pos - anchor
 
-    return null
+    val distance = normalized.getDistance()
+    val fRow = distance / renderingState.boundedRadius()
+    if (fRow < 0f) {
+        Log.d("[MarkerMap]", "point is out of field of view (NR)")
+        return null
+    }
+
+    val angle = atan2(normalized.y, normalized.x).toDouble()
+    val arc = map.fieldOfView / map.rayCount
+    val fCol = -(0.5 * map.fieldOfView + angle) / arc
+    if (fCol < 0f) {
+        Log.d("[MarkerMap]", "point is out of field of view (NC)")
+        return null
+    }
+
+    val row = fRow.toInt()
+    val col = fCol.toInt()
+
+    if (row >= map.circles || col >= map.rayCount) {
+        Log.d("[MarkerMap]", "point is out of field of view (B R|C)")
+        return null
+    }
+    return CellPosition(row, col)
 }
 
 @Preview(showBackground = true)
