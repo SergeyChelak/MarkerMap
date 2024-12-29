@@ -13,12 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
+import org.creator.markermap.model.MarkerMapModel
 
-data class MarkerMapState (
-    var isActive: Boolean = false,
+data class MarkerMapRenderingState (
+    val circles: Int,
     var offset: Offset = Offset.Zero,
     var radius: Float = 100f,
-    val circles: Int = 31
 ) {
     fun correctedOffset(): Offset {
         val len = radius * (circles - 3)
@@ -31,10 +31,9 @@ data class MarkerMapState (
         radius.max(50f).min(200f)
 }
 
-@Preview(showBackground = true)
 @Composable
-fun MarkerMap() {
-    var mapState by remember { mutableStateOf(MarkerMapState()) }
+fun MarkerMap(mapModel: MarkerMapModel) {
+    var mapState by remember { mutableStateOf(MarkerMapRenderingState(mapModel.circles)) }
 
     Box(
         Modifier
@@ -53,9 +52,17 @@ fun MarkerMap() {
         }
     ) {
         MapMesh(
-            circles = mapState.circles,
+            circles = mapModel.circles,
+            rayCount = mapModel.rayCount,
+            fieldOfView = mapModel.fieldOfView,
             offset = mapState.correctedOffset(),
             radius = mapState.correctedRadius()
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MarkerMapPreview() {
+    MarkerMap(MarkerMapModel())
 }
