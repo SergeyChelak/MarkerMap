@@ -12,6 +12,15 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+data class MapMeshRenderingSettings(
+    val lineColor: Color = Color.Gray,
+    val normalStrokeWidth: Float = 5f,
+    val boldStrokeWidth: Float = 10f
+) {
+    fun circleStrokeWidth(circle: Int): Float =
+        if (circle % 3 == 0) boldStrokeWidth else normalStrokeWidth
+}
+
 @Preview(showBackground = true)
 @Composable
 fun MapMesh(
@@ -19,7 +28,8 @@ fun MapMesh(
     rays: Int = 13,
     fov: Double = PI / 2,
     radius: Float = 80f,
-    offset: Offset = Offset(x = 0f, y = 100f)
+    offset: Offset = Offset(x = 0f, y = 100f),
+    rendererSettings: MapMeshRenderingSettings = MapMeshRenderingSettings()
 ) {
     val rayLength = radius * (circles - 1)
     Canvas(modifier = Modifier.fillMaxSize()) {
@@ -27,25 +37,23 @@ fun MapMesh(
         repeat(circles) { step ->
             drawCircle(
                 center = center,
-                color = Color.Gray,
+                color = rendererSettings.lineColor,
                 radius = radius * step,
-                style = Stroke(width = strokeWidth(step))
+                style = Stroke(width = rendererSettings.circleStrokeWidth(step))
             )
         }
         val angles = angles(fov, rays)
         repeat(rays) { ray ->
             val angle = angles[ray]
             drawLine(
-                color = Color.Gray,
+                color = rendererSettings.lineColor,
                 start = center,
                 end = center.rotate(angle, rayLength),
-                strokeWidth = 5f
+                strokeWidth = rendererSettings.normalStrokeWidth
             )
         }
     }
 }
-
-fun strokeWidth(step: Int): Float = if (step % 3 == 0) 10f else 5f
 
 fun angles(fov: Double, rays: Int): List<Float> {
     if (rays < 1) {
