@@ -8,7 +8,7 @@ data class MarkerMapModel(
     val circles: Int = 33,
     val rayCount: Int = 11,
     val fieldOfView: Double = PI * 0.5,
-    var title: String = "",
+    var title: String = ""
 )
 //data class GpsCoordinate(
 //    val latitude: Double,

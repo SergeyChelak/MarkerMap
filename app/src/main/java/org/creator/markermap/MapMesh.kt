@@ -1,5 +1,6 @@
 package org.creator.markermap
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -31,14 +32,15 @@ fun MapMesh(
     offset: Offset,
     rendererSettings: MapMeshRenderingSettings
 ) {
-    val rayLength = radius * (circles - 1)
+    val rayLength = radius * circles
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val center = Offset(x = this.size.width / 2, y = this.size.height) + offset
+        val anchor = Offset(x = this.size.width / 2, y = this.size.height)
+        val center = anchor + offset
         repeat(circles) { step ->
             drawCircle(
                 center = center,
                 color = rendererSettings.lineColor,
-                radius = radius * step,
+                radius = radius * (step + 1),
                 style = Stroke(width = rendererSettings.circleStrokeWidth(step))
             )
         }
@@ -84,11 +86,11 @@ fun Offset.rotate(angle: Float, length: Float): Offset =
 @Composable
 fun MapMeshPreview() {
     MapMesh(
-        circles = 35,
+        circles = 21,
         rayCount = 13,
         fieldOfView = PI / 2,
         radius = 80f,
-        offset = Offset(x = 0f, y = 100f),
+        offset = Offset(x = 0f, y = 0f),
         rendererSettings = MapMeshRenderingSettings()
     )
 }
