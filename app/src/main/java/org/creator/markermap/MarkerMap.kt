@@ -61,7 +61,9 @@ fun MarkerMap(
         }
         .pointerInput(Unit) {
             detectTapGestures(onTap = { offset ->
-                offsetToPosition(offset, mapModel, renderingState)
+                offsetToPosition(offset, mapModel, renderingState)?.let {
+                    Log.d("[MarkerMap]", "Selected cell at $it")
+                }
             })
         }
     ) {
