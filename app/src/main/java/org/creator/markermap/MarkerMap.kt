@@ -19,6 +19,8 @@ data class MarkerMapRenderingState (
     val circles: Int,
     var offset: Offset = Offset.Zero,
     var radius: Float = 100f,
+    val meshRenderingSettings: MapMeshRenderingSettings = MapMeshRenderingSettings()
+
 ) {
     fun correctedOffset(): Offset {
         val len = radius * (circles - 3)
@@ -33,15 +35,15 @@ data class MarkerMapRenderingState (
 
 @Composable
 fun MarkerMap(mapModel: MarkerMapModel) {
-    var mapState by remember { mutableStateOf(MarkerMapRenderingState(mapModel.circles)) }
+    var renderingState by remember { mutableStateOf(MarkerMapRenderingState(mapModel.circles)) }
 
     Box(
         Modifier
         .pointerInput(Unit) {
             detectTransformGestures(panZoomLock = true) { _, pan, zoom, _ ->
-                mapState = mapState.copy(
-                    offset = mapState.offset + pan,
-                    radius = mapState.radius * zoom
+                renderingState = renderingState.copy(
+                    offset = renderingState.offset + pan,
+                    radius = renderingState.radius * zoom
                 )
             }
         }
@@ -55,8 +57,9 @@ fun MarkerMap(mapModel: MarkerMapModel) {
             circles = mapModel.circles,
             rayCount = mapModel.rayCount,
             fieldOfView = mapModel.fieldOfView,
-            offset = mapState.correctedOffset(),
-            radius = mapState.correctedRadius()
+            offset = renderingState.correctedOffset(),
+            radius = renderingState.correctedRadius(),
+            rendererSettings = renderingState.meshRenderingSettings
         )
     }
 }

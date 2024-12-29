@@ -29,7 +29,7 @@ fun MapMesh(
     fieldOfView: Double,
     radius: Float,
     offset: Offset,
-    rendererSettings: MapMeshRenderingSettings = MapMeshRenderingSettings()
+    rendererSettings: MapMeshRenderingSettings
 ) {
     val rayLength = radius * (circles - 1)
     Canvas(modifier = Modifier.fillMaxSize()) {
