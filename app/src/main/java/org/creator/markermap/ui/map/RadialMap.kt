@@ -1,9 +1,10 @@
-package org.creator.markermap
+package org.creator.markermap.ui.map
 
 import android.util.Log
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,33 +16,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.tooling.preview.Preview
 import org.creator.markermap.model.CellPosition
-import org.creator.markermap.model.MarkerMapModel
+import org.creator.markermap.model.MarkerMap
 import kotlin.math.atan2
 
-data class MarkerMapRenderingState(
-    val circles: Int,
-    var offset: Offset = Offset.Zero,
-    var radius: Float = 100f,
-    var anchor: Offset = Offset.Zero,
-    val meshRenderingSettings: MapMeshRenderingSettings = MapMeshRenderingSettings()
-
-) {
-    fun boundedOffset(): Offset {
-        val len = radius * (circles - 3)
-        val y = offset.y.min(len).max(0f)
-        val x = offset.x.min(len).max(-len)
-        return Offset(x, y)
-    }
-
-    fun boundedRadius(): Float =
-        radius.max(50f).min(200f)
-}
-
 @Composable
-fun MarkerMap(
-    mapModel: MarkerMapModel
+fun RadialMap(
+    map: MarkerMap
 ) {
-    var renderingState by remember { mutableStateOf(MarkerMapRenderingState(mapModel.circles)) }
+    var renderingState by remember { mutableStateOf(RadialMapState(map.circles)) }
 
     Box(Modifier
         .onPlaced {
@@ -61,28 +43,29 @@ fun MarkerMap(
         }
         .pointerInput(Unit) {
             detectTapGestures(onTap = { offset ->
-                offsetToPosition(offset, mapModel, renderingState)?.let {
+                offsetToPosition(offset, map, renderingState)?.let {
                     Log.d("[MarkerMap]", "Selected cell at $it")
                 }
             })
         }
     ) {
-        MapMesh(
-            circles = mapModel.circles,
-            rayCount = mapModel.rayCount,
-            fieldOfView = mapModel.fieldOfView,
+        Text(map.title)
+        RadialMesh(
+            circles = map.circles,
+            rayCount = map.rayCount,
+            fieldOfView = map.fieldOfView,
             offset = renderingState.boundedOffset(),
             radius = renderingState.boundedRadius(),
             anchor = renderingState.anchor,
-            rendererSettings = renderingState.meshRenderingSettings
+            rendererSettings = renderingState.meshSettings
         )
     }
 }
 
 fun offsetToPosition(
     offset: Offset,
-    map: MarkerMapModel,
-    renderingState: MarkerMapRenderingState
+    map: MarkerMap,
+    renderingState: RadialMapState
 ): CellPosition? {
     val pos = offset - renderingState.boundedOffset();
     val normalized = pos - renderingState.anchor
@@ -115,5 +98,5 @@ fun offsetToPosition(
 @Preview(showBackground = true)
 @Composable
 fun MarkerMapPreview() {
-    MarkerMap(mapModel = MarkerMapModel())
+    RadialMap(map = MarkerMap())
 }

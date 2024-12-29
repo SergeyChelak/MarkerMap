@@ -1,37 +1,26 @@
-package org.creator.markermap
+package org.creator.markermap.ui.map
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-data class MapMeshRenderingSettings(
-    val lineColor: Color = Color.Gray,
-    val normalStrokeWidth: Float = 5f,
-    val boldStrokeWidth: Float = 10f,
-    val subDivision: Int = 4,
-) {
-    fun circleStrokeWidth(circle: Int): Float =
-        if (circle % subDivision == 0) boldStrokeWidth else normalStrokeWidth
-}
 
 @Composable
-fun MapMesh(
+fun RadialMesh(
     circles: Int,
     rayCount: Int,
     fieldOfView: Double,
     radius: Float,
     anchor: Offset,
     offset: Offset,
-    rendererSettings: MapMeshRenderingSettings
+    rendererSettings: RadialMeshSettings
 ) {
     val rayLength = radius * circles
     Canvas(modifier = Modifier.fillMaxSize()) {
@@ -44,25 +33,25 @@ fun MapMesh(
                 style = Stroke(width = rendererSettings.circleStrokeWidth(step))
             )
         }
-        val angles = angles(fieldOfView, rayCount)
+        val angles = calculateRayAngles(fieldOfView, rayCount)
         repeat(rayCount) { ray ->
             val angle = angles[ray]
             drawLine(
                 color = rendererSettings.lineColor,
                 start = center,
-                end = center.rotate(angle, rayLength),
+                end = center.transform(angle, rayLength),
                 strokeWidth = rendererSettings.normalStrokeWidth
             )
         }
     }
 }
 
-fun angles(fov: Double, rays: Int): List<Float> {
+fun calculateRayAngles(fieldOfView: Double, rays: Int): List<Float> {
     if (rays < 1) {
         return emptyList()
     }
-    val stepSize = fov / (rays - 1)
-    val start = -0.5 * fov;
+    val stepSize = fieldOfView / (rays - 1)
+    val start = -0.5 * fieldOfView;
     return (0..rays)
         .map {
             start + it * stepSize
@@ -78,20 +67,23 @@ fun angles(fov: Double, rays: Int): List<Float> {
         }
 }
 
-fun Offset.rotate(angle: Float, length: Float): Offset =
-    Offset(x = this.x + length * cos(angle), y = y + length * sin(angle))
+fun Offset.transform(angle: Float, distance: Float): Offset =
+    Offset(
+        x + distance * cos(angle),
+        y + distance * sin(angle)
+    )
 
 
 @Preview(showBackground = true)
 @Composable
 fun MapMeshPreview() {
-    MapMesh(
+    RadialMesh(
         circles = 21,
         rayCount = 13,
         fieldOfView = PI / 2,
         radius = 80f,
         anchor = Offset(x = 520f, y = 2340f),
         offset = Offset(x = 0f, y = 0f),
-        rendererSettings = MapMeshRenderingSettings()
+        rendererSettings = RadialMeshSettings()
     )
 }

@@ -3,7 +3,7 @@ package org.creator.markermap.model
 import java.util.UUID
 import kotlin.math.PI
 
-data class MarkerMapModel(
+data class MarkerMap(
     val id: UUID = UUID.randomUUID(),
     val circles: Int = 33,
     val rayCount: Int = 11,
