@@ -29,12 +29,12 @@ fun MapMesh(
     rayCount: Int,
     fieldOfView: Double,
     radius: Float,
+    anchor: Offset,
     offset: Offset,
     rendererSettings: MapMeshRenderingSettings
 ) {
     val rayLength = radius * circles
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val anchor = Offset(x = this.size.width / 2, y = this.size.height)
         val center = anchor + offset
         repeat(circles) { step ->
             drawCircle(
@@ -90,6 +90,7 @@ fun MapMeshPreview() {
         rayCount = 13,
         fieldOfView = PI / 2,
         radius = 80f,
+        anchor = Offset(x = 520f, y = 2340f),
         offset = Offset(x = 0f, y = 0f),
         rendererSettings = MapMeshRenderingSettings()
     )

@@ -12,15 +12,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.tooling.preview.Preview
-import org.creator.markermap.model.MarkerMapModel
 import org.creator.markermap.model.CellPosition
+import org.creator.markermap.model.MarkerMapModel
 import kotlin.math.atan2
 
-data class MarkerMapRenderingState (
+data class MarkerMapRenderingState(
     val circles: Int,
     var offset: Offset = Offset.Zero,
     var radius: Float = 100f,
+    var anchor: Offset = Offset.Zero,
     val meshRenderingSettings: MapMeshRenderingSettings = MapMeshRenderingSettings()
 
 ) {
@@ -36,11 +38,19 @@ data class MarkerMapRenderingState (
 }
 
 @Composable
-fun MarkerMap(mapModel: MarkerMapModel) {
+fun MarkerMap(
+    mapModel: MarkerMapModel
+) {
     var renderingState by remember { mutableStateOf(MarkerMapRenderingState(mapModel.circles)) }
 
-    Box(
-        Modifier
+    Box(Modifier
+        .onPlaced {
+            val anchor = Offset(
+                x = it.size.width.toFloat() / 2,
+                y = it.size.height.toFloat()
+            )
+            renderingState = renderingState.copy(anchor = anchor)
+        }
         .pointerInput(Unit) {
             detectTransformGestures(panZoomLock = true) { _, pan, zoom, _ ->
                 renderingState = renderingState.copy(
@@ -51,9 +61,7 @@ fun MarkerMap(mapModel: MarkerMapModel) {
         }
         .pointerInput(Unit) {
             detectTapGestures(onTap = { offset ->
-                //Log.d("[MarkerMap]", "Tap at $offset")
-                val anchor = Offset(x = this.size.width.toFloat() / 2, y = this.size.height.toFloat())
-                offsetToPosition(offset, anchor, mapModel, renderingState)
+                offsetToPosition(offset, mapModel, renderingState)
             })
         }
     ) {
@@ -63,6 +71,7 @@ fun MarkerMap(mapModel: MarkerMapModel) {
             fieldOfView = mapModel.fieldOfView,
             offset = renderingState.boundedOffset(),
             radius = renderingState.boundedRadius(),
+            anchor = renderingState.anchor,
             rendererSettings = renderingState.meshRenderingSettings
         )
     }
@@ -70,12 +79,11 @@ fun MarkerMap(mapModel: MarkerMapModel) {
 
 fun offsetToPosition(
     offset: Offset,
-    anchor: Offset,
     map: MarkerMapModel,
     renderingState: MarkerMapRenderingState
 ): CellPosition? {
     val pos = offset - renderingState.boundedOffset();
-    val normalized = pos - anchor
+    val normalized = pos - renderingState.anchor
 
     val distance = normalized.getDistance()
     val fRow = distance / renderingState.boundedRadius()
@@ -105,5 +113,5 @@ fun offsetToPosition(
 @Preview(showBackground = true)
 @Composable
 fun MarkerMapPreview() {
-    MarkerMap(MarkerMapModel())
+    MarkerMap(mapModel = MarkerMapModel())
 }
