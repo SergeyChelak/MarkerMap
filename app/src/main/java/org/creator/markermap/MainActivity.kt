@@ -2,9 +2,11 @@ package org.creator.markermap
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,12 +39,12 @@ class MainActivity : ComponentActivity() {
 
 data class MarkerMapState (
     var isActive: Boolean = false,
-    var offset: Offset = Offset(x = 0f, y = 0f),
+    var offset: Offset = Offset.Zero,
     var radius: Float = 100f,
     val circles: Int = 31
 ) {
     fun correctedOffset(): Offset {
-        val len = radius * (circles - 1)
+        val len = radius * (circles - 3)
         val y = offset.y.min(len).max(radius)
         val x = offset.x.min(len).max(-len)
         return Offset(x, y)
@@ -65,6 +67,9 @@ fun MarkerMap() {
                     radius = mapState.radius * zoom
                 )
             }
+        }
+        .pointerInput(Unit) {
+            detectTapGestures { Log.d("[MarkerMap]", "Tap") }
         }
     ) {
         MapMesh(

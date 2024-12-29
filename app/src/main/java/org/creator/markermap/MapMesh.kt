@@ -1,6 +1,5 @@
 package org.creator.markermap
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -71,7 +70,3 @@ fun angles(fov: Double, rays: Int): List<Float> {
 
 fun Offset.rotate(angle: Float, length: Float): Offset =
     Offset(x = this.x + length * cos(angle), y = y + length * sin(angle))
-
-//fun Double.asRadians(): Double = this * PI / 180.0
-
-//fun Double.asDegrees(): Double = this * 180.0 / PI
