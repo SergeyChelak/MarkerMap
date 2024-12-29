@@ -5,19 +5,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import org.creator.markermap.ui.theme.MarkerMapTheme
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -27,62 +28,49 @@ class MainActivity : ComponentActivity() {
         setContent {
             MarkerMapTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    MapMesh()
+                    MarkerMap()
                 }
             }
         }
     }
 }
 
+data class MarkerMapState (
+    var isActive: Boolean = false,
+    var offset: Offset = Offset(x = 0f, y = 0f),
+    var radius: Float = 100f,
+    val circles: Int = 31
+) {
+    fun correctedOffset(): Offset {
+        val len = radius * (circles - 1)
+        val y = offset.y.min(len).max(radius)
+        val x = offset.x.min(len).max(-len)
+        return Offset(x, y)
+    }
+
+    fun correctedRadius(): Float =
+        radius.max(50f).min(200f)
+}
+
 @Preview(showBackground = true)
 @Composable
-fun MapMesh(circles: Int = 28, rays: Int = 13, fov: Double = PI / 2, radius: Float = 100f) {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val center = Offset(x = this.size.width / 2, y = this.size.height + 100f)
-        repeat(circles) { step ->
-            drawCircle(
-                center = center,
-                color = Color.Gray,
-                radius = radius * step,
-                style = Stroke(width = strokeWidth(step))
-            )
+fun MarkerMap() {
+    var mapState by remember { mutableStateOf(MarkerMapState()) }
+
+    Box(Modifier
+        .pointerInput(Unit) {
+            detectTransformGestures(panZoomLock = true) { _, pan, zoom, _ ->
+                mapState = mapState.copy(
+                    offset = mapState.offset + pan,
+                    radius = mapState.radius * zoom
+                )
+            }
         }
-        val angles = angles(fov, rays)
-        val len = radius * circles
-        val x = center.x
-        val y = center.y
-        repeat(rays) { ray ->
-            val angle = angles[ray]
-            drawLine(
-                color = Color.Gray,
-                start = center,
-                end = Offset(x = x + len * cos(angle), y = y + len * sin(angle)),
-                strokeWidth = 5f
-            )
-        }
+    ) {
+        MapMesh(
+            circles = mapState.circles,
+            offset = mapState.correctedOffset(),
+            radius = mapState.correctedRadius()
+        )
     }
 }
-
-fun strokeWidth(step: Int): Float = if (step % 3 == 0) 10f else 5f
-
-fun angles(fov: Double, rays: Int): List<Float> {
-    val stepSize = fov / (rays - 1)
-    val start = -0.5 * fov;
-    return (0..rays)
-        .map {
-            start + it * stepSize
-        }
-        .map {
-             -PI * 0.5 - it
-        }
-        .map {
-            (2 * PI + it) % (2 * PI)
-        }
-        .map {
-            it.toFloat()
-        }
-}
-
-//fun Double.asRadians(): Double = this * PI / 180.0
-
-//fun Double.asDegrees(): Double = this * 180.0 / PI
