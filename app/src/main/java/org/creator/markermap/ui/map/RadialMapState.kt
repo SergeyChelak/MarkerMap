@@ -1,8 +1,8 @@
 package org.creator.markermap.ui.map
 
 import androidx.compose.ui.geometry.Offset
-import org.creator.markermap.max
-import org.creator.markermap.min
+import org.creator.markermap.utils.max
+import org.creator.markermap.utils.min
 
 
 data class RadialMapState(
