@@ -5,13 +5,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.room.Room
-import org.creator.markermap.data.MapDatabase
 import org.creator.markermap.model.MarkerMap
 import org.creator.markermap.ui.list.MapList
 import org.creator.markermap.ui.map.RadialMap
 
-enum class Navigation {
+enum class Route {
     MapList,
     MapView
 }
@@ -19,19 +17,15 @@ enum class Navigation {
 @Composable
 fun NavGraph() {
     val navController = rememberNavController()
-    val database: MapDatabase = Room.databaseBuilder(
-            navController.context.applicationContext,
-            MapDatabase::class.java, "MapDatabase.db"
-        ).build()
 
     NavHost(
         navController = navController,
-        startDestination = Navigation.MapView.name
+        startDestination = Route.MapView.name
     ) {
-        composable(route = Navigation.MapList.name) {
+        composable(route = Route.MapList.name) {
             MapList()
         }
-        composable(route = Navigation.MapView.name) {
+        composable(route = Route.MapView.name) {
             RadialMap(map = MarkerMap())
         }
     }
